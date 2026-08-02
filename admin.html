@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم المحمية - RWS</title>
+    <style>
+        body { background-color: #0d0f18; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; margin: 0; }
+        .admin-container { max-width: 600px; margin: 30px auto; background: #16192b; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { color: #00d2ff; text-align: center; margin-bottom: 25px; font-size: 20px; }
+        .form-group { margin-bottom: 20px; text-align: right; }
+        label { display: block; margin-bottom: 8px; color: #a0aec0; font-size: 13px; }
+        input, select { width: 100%; padding: 12px; background: #0d0f18; border: 1px solid #2d3748; color: white; border-radius: 10px; font-size: 14px; box-sizing: border-box; text-align: right; }
+        .btn-save { background: linear-gradient(135deg, #00d2ff, #3a7bd5); color: white; border: none; padding: 14px; width: 100%; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,210,255,0.3); }
+        .alert { background: #22543d; color: #68d391; padding: 12px; border-radius: 10px; margin-bottom: 20px; text-align: center; display: none; font-size: 13px; }
+        table { width: 100%; margin-top: 30px; border-collapse: collapse; }
+        th, td { padding: 10px; border-bottom: 1px solid #2d3748; text-align: center; font-size: 12px; }
+        th { color: #00d2ff; }
+        .delete-btn { background: #742a2a; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0d0f18; display: flex; justify-content: center; align-items: center; z-index: 999; }
+        .login-box { background: #16192b; padding: 30px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+    </style>
+</head>
+<body>
+
+    <!-- نافذة تسجيل دخول الإدارة -->
+    <div id="loginOverlay">
+        <div class="login-box">
+            <h3 style="color: #00d2ff; margin-bottom: 15px;">منطقة محمية أمنياً 🔒</h3>
+            <p style="color: #a0aec0; font-size: 12px; margin-bottom: 15px;">أدخل كلمة المرور المعقدة:</p>
+            <input type="password" id="adminPassword" placeholder="كلمة المرور..." style="width: 100%; padding: 10px; background: #0d0f18; border: 1px solid #2d3748; color: white; border-radius: 8px; text-align: center; margin-bottom: 15px; box-sizing: border-box;">
+            <button onclick="checkAdminPassword()" class="btn-save" style="padding: 10px;">فك الحماية والدخول</button>
+        </div>
+    </div>
+
+    <div class="admin-container">
+        <h2>إدارة المشتركين - RWS</h2>
+        <div id="alertBox" class="alert">تم تفعيل العميل وحفظ البيانات بنجاح!</div>
+
+        <form id="adminUdidForm">
+            <div class="form-group">
+                <label>رقم UDID الخاص بالعميل:</label>
+                <input type="text" id="clientUdid" placeholder="ألصق الـ UDID هنا..." required>
+            </div>
+
+            <div class="form-group">
+                <label>نوع الباقة:</label>
+                <select id="clientPackage">
+                    <option value="اشتراك عادي (Basic)">اشتراك عادي (Basic)</option>
+                    <option value="اشتراك VIP (مميز)">اشتراك VIP (مميز)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>تاريخ انتهاء الاشتراك:</label>
+                <input type="date" id="clientExpiry" required>
+            </div>
+
+            <button type="submit" class="btn-save">حفظ وتفعيل الجهاز</button>
+        </form>
+
+        <h3 style="margin-top: 35px; color: #fff; font-size: 15px; text-align: right;">الأجهزة المفعلة حالياً</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>الـ UDID</th>
+                    <th>الباقة</th>
+                    <th>الانتهاء</th>
+                    <th>إدارة</th>
+                </tr>
+            </thead>
+            <tbody id="adminUsersTable"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // كلمة المرور المحمية
+        const ADMIN_PASS = "RWS#Secure_900x_Admin_2026!Key_#Pass";
+
+        function checkAdminPassword() {
+            let pass = document.getElementById("adminPassword").value;
+            if (pass === ADMIN_PASS) {
+                document.getElementById("loginOverlay").style.display = "none";
+                loadAdminUsers();
+            } else {
+                alert("كلمة المرور خاطئة!");
+            }
+        }
+
+        function loadAdminUsers() {
+            let users = JSON.parse(localStorage.getItem("rws_real_users")) || {};
+            let tbody = document.getElementById("adminUsersTable");
+            tbody.innerHTML = "";
+            
+            if (Object.keys(users).length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="color: #718096; padding: 20px;">لا توجد أجهزة مسجلة حالياً.</td></tr>`;
+                return;
+            }
+
+            for (let udid in users) {
+                tbody.innerHTML += `<tr>
+                    <td style="color: #a0aec0; font-family: monospace; font-size: 10px;">${udid}</td>
+                    <td><b style="color: #00d2ff;">${users[udid].package}</b></td>
+                    <td>${users[udid].expiry}</td>
+                    <td><button class="delete-btn" onclick="deleteUser('${udid}')">حذف</button></td>
+                </tr>`;
+            }
+        }
+
+        document.getElementById("adminUdidForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            let udid = document.getElementById("clientUdid").value.trim();
+            let pkg = document.getElementById("clientPackage").value;
+            let expiry = document.getElementById("clientExpiry").value;
+
+            let users = JSON.parse(localStorage.getItem("rws_real_users")) || {};
+            users[udid] = { package: pkg, expiry: expiry };
+            localStorage.setItem("rws_real_users", JSON.stringify(users));
+
+            let alertBox = document.getElementById("alertBox");
+            alertBox.style.display = "block";
+            setTimeout(() => { alertBox.style.display = "none"; }, 3500);
+            
+            loadAdminUsers();
+            document.getElementById("adminUdidForm().reset();
+        });
+
+        function deleteUser(udid) {
+            if (confirm("هل أنت متأكد من حذف هذا الجهاز وإلغاء تفعيله؟")) {
+                let users = JSON.parse(localStorage.getItem("rws_real_users")) || {};
+                delete users[udid];
+                localStorage.setItem("rws_real_users", JSON.stringify(users));
+                loadAdminUsers();
+            }
+        }
+    </script>
+</body>
+</html>
