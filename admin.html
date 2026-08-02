@@ -27,8 +27,8 @@
     <div id="loginOverlay">
         <div class="login-box">
             <h3 style="color: #00d2ff; margin-bottom: 15px;">منطقة محمية أمنياً 🔒</h3>
-            <p style="color: #a0aec0; font-size: 12px; margin-bottom: 15px;">أدخل كلمة المرور المعقدة:</p>
-            <input type="password" id="adminPassword" placeholder="كلمة المرور..." style="width: 100%; padding: 10px; background: #0d0f18; border: 1px solid #2d3748; color: white; border-radius: 8px; text-align: center; margin-bottom: 15px; box-sizing: border-box;">
+            <p style="color: #a0aec0; font-size: 12px; margin-bottom: 15px;">أدخل كلمة المرور (rws1234):</p>
+            <input type="text" id="adminPassword" placeholder="اكتب rws1234 هنا..." style="width: 100%; padding: 10px; background: #0d0f18; border: 1px solid #2d3748; color: white; border-radius: 8px; text-align: center; margin-bottom: 15px; box-sizing: border-box;">
             <button onclick="checkAdminPassword()" class="btn-save" style="padding: 10px;">فك الحماية والدخول</button>
         </div>
     </div>
@@ -74,16 +74,16 @@
     </div>
 
     <script>
-        // كلمة المرور المحمية
-        const ADMIN_PASS = "RWS#Secure_900x_Admin_2026!Key_#Pass";
+        // كلمة المرور البسيطة والواضحة
+        const ADMIN_PASS = "rws1234";
 
         function checkAdminPassword() {
-            let pass = document.getElementById("adminPassword").value;
+            let pass = document.getElementById("adminPassword").value.trim();
             if (pass === ADMIN_PASS) {
                 document.getElementById("loginOverlay").style.display = "none";
                 loadAdminUsers();
             } else {
-                alert("كلمة المرور خاطئة!");
+                alert("كلمة المرور خاطئة! اكتب rws1234");
             }
         }
 
@@ -122,7 +122,7 @@
             setTimeout(() => { alertBox.style.display = "none"; }, 3500);
             
             loadAdminUsers();
-            document.getElementById("adminUdidForm().reset();
+            document.getElementById("adminUdidForm").reset();
         });
 
         function deleteUser(udid) {
