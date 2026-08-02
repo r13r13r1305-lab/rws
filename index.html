@@ -45,10 +45,10 @@
         
         <div id="statusResult" class="status-box"></div>
 
-        <!-- زر الانتقال للوحة التحكم -->
+        <!-- زر الانتقال لوحة التحكم -->
         <button class="admin-toggle-btn" onclick="requestAdminAccess()">دخول لوحة التحكم 🔒</button>
 
-        <!-- لوحة التحكم (تظهر بعد كلمة المرور) -->
+        <!-- لوحة التحكم -->
         <div id="adminPanel">
             <h2 style="color: #00d2ff; text-align: center; font-size: 18px; margin-bottom: 20px;">لوحة التحكم بالإدارة ⚙️</h2>
             <div id="alertBox" class="alert">تم تفعيل العميل وحفظ البيانات بنجاح!</div>
@@ -87,12 +87,11 @@
                 </thead>
                 <tbody id="adminUsersTable"></tbody>
             </table>
-            <button onclick="lockAdminPanel()" class="btn btn-secondary" style="margin-top: 20px; padding: 8px; font-size: 12px;">قفل لوحة التحكم الخروج</button>
+            <button onclick="lockAdminPanel()" class="btn btn-secondary" style="margin-top: 20px; padding: 8px; font-size: 12px;">قفل لوحة التحكم والخروج</button>
         </div>
     </div>
 
     <script>
-        // كلمة المرور القوية والخرافية جداً
         const ADMIN_PASS = "RWS_Pro_Admin_2026_!#x900_SecureKey_$$777";
 
         function verifyManualUDID() {
@@ -108,7 +107,8 @@
             if (registeredUsers[inputUdid]) {
                 let user = registeredUsers[inputUdid];
                 resultBox.className = "status-box active";
-                resultBox.innerHTML = `<b>حالة الجهاز:</b> مفعل بنجاح ✅<br><b>الباقة:</b> ${user.package}<br><b>تاريخ الانتهاء:</b> ${user.expiry}<br><br><a href="store.html" class="btn btn-install" style="text-align:center; margin:10px 0 0 0; display:block;">دخول متجر تطبيقات البلس 🚀</a>`;
+                // زر تحميل الملف التعريفي بدل الصفحة البيضاء
+                resultBox.innerHTML = `<b>حالة الجهاز:</b> مفعل بنجاح ✅<br><b>الباقة:</b> ${user.package}<br><b>تاريخ الانتهاء:</b> ${user.expiry}<br><br><a href="rws.mobileconfig" class="btn btn-install" style="text-align:center; margin:10px 0 0 0; display:block; text-decoration:none;">تحميل وتثبيت متجر RWS Store + 📥</a>`;
             } else {
                 resultBox.className = "status-box inactive";
                 resultBox.innerHTML = `<b>حالة الجهاز:</b> غير مفعل ❌<br><b>رقم جهازك:</b><br><code style="background:#0d0f18; padding:4px; color:#00d2ff; user-select:all; display:block; margin-top:5px; text-align:center;">${inputUdid}</code><br>انسخ الرقم وأرسله للإدارة لتفعيله.`;
@@ -116,7 +116,7 @@
         }
 
         function requestAdminAccess() {
-            let pass = prompt("أدخل كلمة المرور القوية للوحة التحكم:");
+            let pass = prompt("أدخل كلمة المرور القوية لوحة التحكم:");
             if (pass === ADMIN_PASS) {
                 document.getElementById("adminPanel").style.display = "block";
                 loadAdminUsers();
