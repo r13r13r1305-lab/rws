@@ -6,7 +6,7 @@
     <title>RWS - التحقق وتثبيت المتجر</title>
     <style>
         body { background-color: #0d0f18; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; padding: 20px; margin: 0; }
-        .container { max-width: 400px; margin: 40px auto; background: #16192b; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .container { max-width: 450px; margin: 30px auto; background: #16192b; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         h1 { font-size: 22px; margin-bottom: 10px; color: #00d2ff; }
         p { color: #a0aec0; font-size: 13px; margin-bottom: 25px; line-height: 1.6; }
         .btn { display: block; width: 100%; padding: 14px; margin: 15px 0; background: linear-gradient(135deg, #00d2ff, #3a7bd5); color: white; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 15px; border: none; cursor: pointer; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,210,255,0.3); }
@@ -17,10 +17,23 @@
         .status-box { margin-top: 20px; padding: 15px; border-radius: 10px; font-size: 13px; display: none; text-align: right; }
         .active { background: #22543d; color: #68d391; display: block; }
         .inactive { background: #742a2a; color: #fc8181; display: block; }
+        
+        /* لوحة التحكم المخفية */
+        #adminPanel { display: none; margin-top: 30px; border-top: 2px dashed #2d3748; padding-top: 25px; text-align: right; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #a0aec0; font-size: 12px; }
+        select { width: 100%; padding: 10px; background: #0d0f18; border: 1px solid #2d3748; color: white; border-radius: 8px; font-size: 13px; box-sizing: border-box; text-align: right; }
+        .alert { background: #22543d; color: #68d391; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; display: none; font-size: 12px; }
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+        th, td { padding: 8px; border-bottom: 1px solid #2d3748; text-align: center; font-size: 11px; }
+        th { color: #00d2ff; }
+        .delete-btn { background: #742a2a; color: white; border: none; padding: 5px 8px; border-radius: 5px; cursor: pointer; font-size: 10px; font-weight: bold; }
+        .admin-toggle-btn { background: transparent; color: #4a5568; border: none; font-size: 11px; margin-top: 35px; cursor: pointer; text-decoration: underline; width: 100%; }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- واجهة الزائر الأساسية -->
         <div class="badge">نظام حماية UDID - RWS</div>
         <h1>التحقق من اشتراك الجهاز</h1>
         <p>أدخل رقم UDID الخاص بجهازك للتحقق وتثبيت تطبيق البلس.</p>
@@ -31,9 +44,57 @@
         <a href="https://get.udid.io/" target="_blank" class="btn btn-secondary">معرفة الـ UDID حقك (اضغط هنا)</a>
         
         <div id="statusResult" class="status-box"></div>
+
+        <!-- زر الانتقال للوحة التحكم -->
+        <button class="admin-toggle-btn" onclick="requestAdminAccess()">دخول لوحة التحكم 🔒</button>
+
+        <!-- لوحة التحكم (تظهر بعد كلمة المرور) -->
+        <div id="adminPanel">
+            <h2 style="color: #00d2ff; text-align: center; font-size: 18px; margin-bottom: 20px;">لوحة التحكم بالإدارة ⚙️</h2>
+            <div id="alertBox" class="alert">تم تفعيل العميل وحفظ البيانات بنجاح!</div>
+
+            <form id="adminUdidForm">
+                <div class="form-group">
+                    <label>رقم UDID الخاص بالعميل:</label>
+                    <input type="text" id="clientUdid" class="input-udid" placeholder="ألصق الـ UDID هنا..." required style="margin-bottom:0;">
+                </div>
+
+                <div class="form-group">
+                    <label>نوع الباقة:</label>
+                    <select id="clientPackage">
+                        <option value="اشتراك عادي (Basic)">اشتراك عادي (Basic)</option>
+                        <option value="اشتراك VIP (مميز)">اشتراك VIP (مميز)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>تاريخ انتهاء الاشتراك:</label>
+                    <input type="date" id="clientExpiry" class="input-udid" required style="margin-bottom:0;">
+                </div>
+
+                <button type="submit" class="btn" style="margin-top: 15px;">حفظ وتفعيل الجهاز</button>
+            </form>
+
+            <h3 style="margin-top: 25px; color: #fff; font-size: 14px; text-align: right;">الأجهزة المفعلة حالياً:</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>الـ UDID</th>
+                        <th>الباقة</th>
+                        <th>الانتهاء</th>
+                        <th>إدارة</th>
+                    </tr>
+                </thead>
+                <tbody id="adminUsersTable"></tbody>
+            </table>
+            <button onclick="lockAdminPanel()" class="btn btn-secondary" style="margin-top: 20px; padding: 8px; font-size: 12px;">قفل لوحة التحكم الخروج</button>
+        </div>
     </div>
 
     <script>
+        // كلمة المرور القوية والخرافية جداً
+        const ADMIN_PASS = "RWS_Pro_Admin_2026_!#x900_SecureKey_$$777";
+
         function verifyManualUDID() {
             let inputUdid = document.getElementById("userUdidCheck").value.trim();
             let registeredUsers = JSON.parse(localStorage.getItem("rws_real_users")) || {};
@@ -51,6 +112,69 @@
             } else {
                 resultBox.className = "status-box inactive";
                 resultBox.innerHTML = `<b>حالة الجهاز:</b> غير مفعل ❌<br><b>رقم جهازك:</b><br><code style="background:#0d0f18; padding:4px; color:#00d2ff; user-select:all; display:block; margin-top:5px; text-align:center;">${inputUdid}</code><br>انسخ الرقم وأرسله للإدارة لتفعيله.`;
+            }
+        }
+
+        function requestAdminAccess() {
+            let pass = prompt("أدخل كلمة المرور القوية للوحة التحكم:");
+            if (pass === ADMIN_PASS) {
+                document.getElementById("adminPanel").style.display = "block";
+                loadAdminUsers();
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            } else if (pass !== null) {
+                alert("كلمة المرور خاطئة!");
+            }
+        }
+
+        function lockAdminPanel() {
+            document.getElementById("adminPanel").style.display = "none";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function loadAdminUsers() {
+            let users = JSON.parse(localStorage.getItem("rws_real_users")) || {};
+            let tbody = document.getElementById("adminUsersTable");
+            tbody.innerHTML = "";
+            
+            if (Object.keys(users).length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="color: #718096; padding: 15px;">لا توجد أجهزة مسجلة حالياً.</td></tr>`;
+                return;
+            }
+
+            for (let udid in users) {
+                tbody.innerHTML += `<tr>
+                    <td style="color: #a0aec0; font-family: monospace; font-size: 9px; word-break: break-all;">${udid}</td>
+                    <td><b style="color: #00d2ff;">${users[udid].package}</b></td>
+                    <td>${users[udid].expiry}</td>
+                    <td><button class="delete-btn" onclick="deleteUser('${udid}')">حذف</button></td>
+                </tr>`;
+            }
+        }
+
+        document.getElementById("adminUdidForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            let udid = document.getElementById("clientUdid").value.trim();
+            let pkg = document.getElementById("clientPackage").value;
+            let expiry = document.getElementById("clientExpiry").value;
+
+            let users = JSON.parse(localStorage.getItem("rws_real_users")) || {};
+            users[udid] = { package: pkg, expiry: expiry };
+            localStorage.setItem("rws_real_users", JSON.stringify(users));
+
+            let alertBox = document.getElementById("alertBox");
+            alertBox.style.display = "block";
+            setTimeout(() => { alertBox.style.display = "none"; }, 3500);
+            
+            loadAdminUsers();
+            document.getElementById("adminUdidForm").reset();
+        });
+
+        function deleteUser(udid) {
+            if (confirm("هل أنت متأكد من حذف هذا الجهاز وإلغاء تفعيله؟")) {
+                let users = JSON.parse(localStorage.getItem("rws_real_users")) || {};
+                delete users[udid];
+                localStorage.setItem("rws_real_users", JSON.stringify(users));
+                loadAdminUsers();
             }
         }
     </script>
