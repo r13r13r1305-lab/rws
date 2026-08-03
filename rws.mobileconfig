@@ -6,7 +6,7 @@
     <array>
         <dict>
             <key>PayloadDescription</key>
-            <string>تثبيت متجر RWS Store + لتطبيقات البلس</string>
+            <string>تثبيت متجر RWS Store + لتطبيقات البلس والألعاب المهكرة</string>
             <key>PayloadDisplayName</key>
             <string>RWS Store +</string>
             <key>PayloadIdentifier</key>
@@ -28,7 +28,7 @@
             <key>Precomposed</key>
             <true/>
             <key>URL</key>
-            <string>https://r13r13r1305-lab.github.io/rws/</string>
+            <string>https://r13r13r1305-lab.github.io/-res/</string>
         </dict>
     </array>
     <key>PayloadDescription</key>
